@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Close To You</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Raleway:wght@100;200;300&family=Italianno&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --obsidian:     #08080b;
+      --obsidian-mid: #0e0e14;
+      --amber:        #f5b84a;
+      --amber-soft:   #ffd580;
+      --amber-deep:   #d8881a;
+      --cream:        rgba(255, 248, 228, 0.92);
+      --cream-mid:    rgba(255, 248, 228, 0.55);
+      --cream-dim:    rgba(255, 248, 228, 0.32);
+      --cream-ghost:  rgba(255, 248, 228, 0.12);
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: var(--obsidian);
+      cursor: default;
+    }
+
+    body {
+      font-family: 'Cormorant Garamond', 'Georgia', serif;
+      user-select: none;
+      position: relative;
+    }
+
+    /* ─────────── ENTRY SCREEN ─────────── */
+    .entry {
+      position: fixed;
+      inset: 0;
+      background: var(--obsidian);
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: opacity 2.5s ease;
+    }
+
+    .entry.fade {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .entry-mark {
+      width: 1px;
+      height: 50px;
+      background: linear-gradient(to bottom, transparent, var(--amber), transparent);
+      margin-bottom: 2.5rem;
+      opacity: 0;
+      animation: entry-fade-in 2s ease-out 0.5s forwards;
+    }
+
+    .entry-text {
+      font-family: 'Raleway', sans-serif;
+      font-weight: 100;
+      font-size: 0.72rem;
+      letter-spacing: 0.55em;
+      text-transform: uppercase;
+      color: var(--cream-mid);
+      opacity: 0;
+      animation: entry-fade-in 2.5s ease-out 1.2s forwards, breath 3.5s ease-in-out 4s infinite;
+    }
+
+    .entry-sub {
+      font-family: 'Italianno', cursive;
+      font-size: 1.6rem;
+      color: rgba(245, 184, 74, 0.6);
+      margin-top: 2.5rem;
+      opacity: 0;
+      animation: entry-fade-in 2.5s ease-out 2.2s forwards;
+    }
+
+    @keyframes entry-fade-in {
+      to { opacity: 1; }
+    }
+
+    @keyframes breath {
+      0%, 100% { opacity: 0.55; }
+      50%      { opacity: 1; }
+    }
+
+    /* ─────────── ATMOSPHERE LAYERS ─────────── */
+
+    /* Grain texture */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 200;
+      opacity: 0.04;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.78' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E");
+    }
+
+    /* Vignette */
+    .vignette {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 150;
+      background: radial-gradient(
+        ellipse at center,
+        transparent 35%,
+        rgba(0, 0, 0, 0.35) 75%,
+        rgba(0, 0, 0, 0.7) 100%
+      );
+      animation: vignette-breath 12s ease-in-out infinite;
+    }
+
+    @keyframes vignette-breath {
+      0%, 100% { opacity: 0.85; }
+      50%      { opacity: 1;   }
+    }
+
+    /* Canvas layers */
+    .canvas-layer {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+    }
+    #rain      { z-index: 3; }
+    #stars     { z-index: 2; }
+    #embers    { z-index: 4; }
+
+    /* God rays */
+    .rays {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      width: 140vmax;
+      height: 140vmax;
+      transform: translate(-50%, -50%) rotate(0deg);
+      background:
+        conic-gradient(
+          from 0deg,
+          transparent 0deg,
+          rgba(245, 175, 60, 0.025) 8deg,
+          transparent 16deg,
+          transparent 50deg,
+          rgba(245, 175, 60, 0.018) 58deg,
+          transparent 66deg,
+          transparent 110deg,
+          rgba(245, 175, 60, 0.025) 118deg,
+          transparent 126deg,
+          transparent 180deg,
+          rgba(245, 175, 60, 0.02) 188deg,
+          transparent 196deg,
+          transparent 240deg,
+          rgba(245, 175, 60, 0.025) 248deg,
+          transparent 256deg,
+          transparent 300deg,
+          rgba(245, 175, 60, 0.018) 308deg,
+          transparent 316deg
+        );
+      opacity: 0;
+      animation:
+        rays-fade 6s ease-out 14s both,
+        rays-rotate 90s linear 14s infinite;
+      z-index: 4;
+      pointer-events: none;
+      mix-blend-mode: screen;
+    }
+
+    @keyframes rays-fade   { to { opacity: 1; } }
+    @keyframes rays-rotate { to { transform: translate(-50%, -50%) rotate(360deg); } }
+
+    /* ─────────── LIGHT BLOOM ─────────── */
+    .bloom-layer {
+      position: fixed;
+      inset: 0;
+      z-index: 5;
+      pointer-events: none;
+      transform: translate(0, 0);
+      transition: transform 1.2s cubic-bezier(0.22, 0.61, 0.36, 1);
+    }
+
+    .bloom {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 130vmax;
+      height: 130vmax;
+      border-radius: 50%;
+      transform: translate(-50%, -50%) scale(0.1);
+      background: radial-gradient(
+        ellipse at center,
+        rgba(255, 213, 128, 0.18) 0%,
+        rgba(245, 175, 60, 0.10) 14%,
+        rgba(220, 130, 30, 0.05) 32%,
+        rgba(180, 80, 10, 0.025) 52%,
+        rgba(120, 50, 5, 0.01) 68%,
+        transparent 78%
+      );
+      opacity: 0;
+      animation: bloom-emerge 11s cubic-bezier(0.22, 0.61, 0.36, 1) 11s both;
+    }
+
+    @keyframes bloom-emerge {
+      0%   { opacity: 0;    transform: translate(-50%, -50%) scale(0.05); }
+      20%  { opacity: 0.4;  }
+      100% { opacity: 1;    transform: translate(-50%, -50%) scale(1);    }
+    }
+
+    /* Primary orb (the realization) */
+    .orb {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--amber-soft);
+      transform: translate(-50%, -50%) scale(0);
+      opacity: 0;
+      animation:
+        orb-appear 1.6s cubic-bezier(0.34, 1.56, 0.64, 1) 11s both,
+        heartbeat 1.6s ease-in-out 13s infinite;
+    }
+
+    @keyframes orb-appear {
+      0%   { opacity: 0; transform: translate(-50%, -50%) scale(0); }
+      60%  { opacity: 1; transform: translate(-50%, -50%) scale(1.4); }
+      100% { opacity: 1; transform: translate(-50%, -50%) scale(1);   }
+    }
+
+    /* Real heartbeat rhythm: lub-DUB-pause */
+    @keyframes heartbeat {
+      0%    { box-shadow: 0 0 8px 4px rgba(255,213,128,0.85), 0 0 30px 12px rgba(245,175,60,0.4),  0 0 80px 30px rgba(235,140,30,0.16), 0 0 180px 70px rgba(220,110,10,0.06); transform: translate(-50%,-50%) scale(1); }
+      12%   { box-shadow: 0 0 12px 6px rgba(255,213,128,1),    0 0 50px 22px rgba(245,175,60,0.55), 0 0 130px 55px rgba(235,140,30,0.22), 0 0 240px 95px rgba(220,110,10,0.10); transform: translate(-50%,-50%) scale(1.18); }
+      22%   { box-shadow: 0 0 8px 4px rgba(255,213,128,0.85), 0 0 30px 12px rgba(245,175,60,0.4),  0 0 80px 30px rgba(235,140,30,0.16), 0 0 180px 70px rgba(220,110,10,0.06); transform: translate(-50%,-50%) scale(1); }
+      32%   { box-shadow: 0 0 10px 5px rgba(255,213,128,0.95), 0 0 45px 18px rgba(245,175,60,0.5),  0 0 110px 45px rgba(235,140,30,0.2),  0 0 220px 88px rgba(220,110,10,0.08); transform: translate(-50%,-50%) scale(1.12); }
+      42%   { box-shadow: 0 0 8px 4px rgba(255,213,128,0.85), 0 0 30px 12px rgba(245,175,60,0.4),  0 0 80px 30px rgba(235,140,30,0.16), 0 0 180px 70px rgba(220,110,10,0.06); transform: translate(-50%,-50%) scale(1); }
+      100%  { box-shadow: 0 0 8px 4px rgba(255,213,128,0.85), 0 0 30px 12px rgba(245,175,60,0.4),  0 0 80px 30px rgba(235,140,30,0.16), 0 0 180px 70px rgba(220,110,10,0.06); transform: translate(-50%,-50%) scale(1); }
+    }
+
+    /* Second orb (her) — drifts in from the left */
+    .orb-two {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: var(--amber-soft);
+      opacity: 0;
+      transform: translate(-50%, -50%);
+      animation: orb-two-journey 14s cubic-bezier(0.45, 0, 0.55, 1) 26s forwards;
+      box-shadow:
+        0 0 6px 3px rgba(255,213,128,0.85),
+        0 0 22px 9px rgba(245,175,60,0.4),
+        0 0 60px 22px rgba(235,140,30,0.16);
+    }
+
+    @keyframes orb-two-journey {
+      0%   { opacity: 0;    transform: translate(calc(-50% - 45vw),  calc(-50% - 8vh)) scale(0.4); }
+      10%  { opacity: 0.85; }
+      85%  { opacity: 1;    transform: translate(calc(-50% - 1px),   calc(-50% + 1px))  scale(1);   }
+      92%  { opacity: 1;    transform: translate(-50%, -50%) scale(1.8); box-shadow: 0 0 18px 9px rgba(255,213,128,1), 0 0 70px 30px rgba(245,175,60,0.7), 0 0 180px 70px rgba(235,140,30,0.3); }
+      100% { opacity: 0;    transform: translate(-50%, -50%) scale(1); }
+    }
+
+    /* Merge flash */
+    .merge-flash {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255,240,200,1) 0%, rgba(245,175,60,0.6) 30%, transparent 70%);
+      transform: translate(-50%, -50%) scale(0);
+      opacity: 0;
+      animation: merge-burst 3s ease-out 38.5s forwards;
+    }
+
+    @keyframes merge-burst {
+      0%   { opacity: 0; transform: translate(-50%, -50%) scale(0); }
+      15%  { opacity: 1; transform: translate(-50%, -50%) scale(35); }
+      100% { opacity: 0; transform: translate(-50%, -50%) scale(80); }
+    }
+
+    /* ─────────── CONTENT ─────────── */
+    .stage {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+      padding: 2rem;
+    }
+
+    .content {
+      position: relative;
+      text-align: center;
+      max-width: 720px;
+    }
+
+    .line {
+      opacity: 0;
+      transform: translateY(24px);
+    }
+
+    .line.reveal {
+      animation: line-rise 2.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes line-rise {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Overline — Act I */
+    .overline {
+      font-family: 'Raleway', sans-serif;
+      font-weight: 100;
+      font-size: clamp(0.62rem, 1.3vw, 0.78rem);
+      letter-spacing: 0.5em;
+      text-transform: uppercase;
+      color: var(--cream-dim);
+      margin-bottom: 3rem;
+    }
+
+    /* Word-by-word main poem */
+    .poem-main {
+      font-size: clamp(2.6rem, 7vw, 5rem);
+      font-weight: 300;
+      font-style: italic;
+      color: var(--amber);
+      line-height: 1.1;
+      letter-spacing: -0.015em;
+      text-shadow:
+        0 0 60px rgba(245, 175, 60, 0.4),
+        0 0 140px rgba(245, 140, 40, 0.15);
+      margin-bottom: 3.4rem;
+      opacity: 1;
+      transform: none;
+    }
+
+    .poem-main .word {
+      display: inline-block;
+      opacity: 0;
+      transform: translateY(20px);
+      margin: 0 0.15em;
+    }
+
+    .poem-main .word.in {
+      animation: word-rise 1.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes word-rise {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .poem-main br + .word { margin-left: 0; }
+
+    /* Divider */
+    .divider {
+      width: 1px;
+      margin: 0 auto 3.4rem;
+      background: linear-gradient(to bottom,
+        transparent,
+        rgba(245, 175, 60, 0.55) 40%,
+        rgba(245, 175, 60, 0.55) 60%,
+        transparent);
+      height: 0;
+      opacity: 0;
+      animation: divider-grow 2.2s ease-out 19s both;
+    }
+
+    @keyframes divider-grow {
+      to { height: 60px; opacity: 1; }
+    }
+
+    /* Secondary poem */
+    .poem-secondary {
+      font-size: clamp(1.1rem, 2.5vw, 1.55rem);
+      font-weight: 300;
+      color: var(--cream-mid);
+      line-height: 1.85;
+      letter-spacing: 0.02em;
+      margin-bottom: 3.4rem;
+    }
+
+    .poem-secondary em {
+      font-style: italic;
+      color: rgba(255, 248, 228, 0.6);
+    }
+
+    /* Reunion line (Italianno) */
+    .reunion {
+      font-family: 'Italianno', cursive;
+      font-size: clamp(2.4rem, 5vw, 3.4rem);
+      color: var(--amber);
+      letter-spacing: 0.01em;
+      margin-bottom: 2.4rem;
+      text-shadow: 0 0 40px rgba(245, 175, 60, 0.3);
+    }
+
+    /* Closing */
+    .closing {
+      font-family: 'Raleway', sans-serif;
+      font-weight: 200;
+      font-size: clamp(0.66rem, 1.4vw, 0.82rem);
+      letter-spacing: 0.42em;
+      text-transform: uppercase;
+      color: rgba(245, 175, 60, 0.5);
+    }
+
+    /* ─────────── UI ─────────── */
+    .song-credit {
+      position: fixed;
+      bottom: 2.4rem;
+      left: 50%;
+      transform: translateX(-50%);
+      font-family: 'Raleway', sans-serif;
+      font-weight: 100;
+      font-size: clamp(0.58rem, 1.1vw, 0.68rem);
+      letter-spacing: 0.32em;
+      text-transform: uppercase;
+      color: rgba(255, 248, 228, 0.2);
+      white-space: nowrap;
+      opacity: 0;
+      animation: ghost-in 3s ease 46s both;
+      z-index: 60;
+    }
+
+    .audio-btn {
+      position: fixed;
+      top: 1.8rem;
+      right: 2rem;
+      font-family: 'Raleway', sans-serif;
+      font-weight: 200;
+      font-size: 0.66rem;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: rgba(255, 248, 228, 0.25);
+      cursor: pointer;
+      z-index: 60;
+      transition: color 0.6s ease;
+      border: none;
+      background: none;
+      padding: 0.5rem;
+      opacity: 0;
+      animation: ghost-in 2s ease 13s forwards;
+    }
+
+    .audio-btn:hover { color: rgba(245, 175, 60, 0.65); }
+
+    @keyframes ghost-in {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0);   }
+    }
+
+    @media (max-width: 600px) {
+      .audio-btn { top: 1.2rem; right: 1.2rem; }
+      .song-credit { bottom: 1.5rem; font-size: 0.55rem; letter-spacing: 0.25em; }
+    }
+  </style>
+</head>
+<body>
+
+  <audio id="bgAudio" loop preload="auto">
+    <source src="close-to-you.mp3" type="audio/mpeg">
+  </audio>
+
+  <!-- ENTRY SCREEN -->
+  <div class="entry" id="entry">
+    <div class="entry-mark"></div>
+    <div class="entry-text">para ti</div>
+    <div class="entry-sub">press to enter</div>
+  </div>
+
+  <!-- ATMOSPHERE -->
+  <canvas id="stars"  class="canvas-layer"></canvas>
+  <canvas id="rain"   class="canvas-layer"></canvas>
+  <canvas id="embers" class="canvas-layer"></canvas>
+
+  <!-- LIGHT -->
+  <div class="rays"></div>
+  <div class="bloom-layer" id="bloomLayer">
+    <div class="bloom"></div>
+    <div class="orb"></div>
+    <div class="orb-two"></div>
+    <div class="merge-flash"></div>
+  </div>
+
+  <div class="vignette"></div>
+
+  <!-- TEXT -->
+  <div class="stage">
+    <div class="content">
+
+      <div class="line overline" data-delay="13000">
+        bajo la lluvia, lo entendí
+      </div>
+
+      <div class="poem-main" data-delay="16000" data-words="true">
+        sin ti,<br>soy nada
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="line poem-secondary" data-delay="22000">
+        contigo puedo avanzar.<br>
+        <em>mis pérdidas, mis silencios —<br>
+        todo tiene que ser tuyo también.</em>
+      </div>
+
+      <div class="line reunion" data-delay="38000">
+        vuelve a mí
+      </div>
+
+      <div class="line closing" data-delay="44000">
+        siempre cerca de ti
+      </div>
+
+    </div>
+  </div>
+
+  <div class="song-credit">♪ Close To You &nbsp;·&nbsp; The Carpenters</div>
+  <button class="audio-btn" id="audioBtn" onclick="toggleAudio()">♪ &nbsp;música</button>
+
+  <script>
+  (function() {
+    // ─── State ───
+    let started   = false;
+    let raining   = true;
+    let starsOn   = false;
+    let embersOn  = false;
+    let rainStopAt = null;
+
+    // ─── Canvases ───
+    const cRain   = document.getElementById('rain');
+    const cStars  = document.getElementById('stars');
+    const cEmbers = document.getElementById('embers');
+    const xRain   = cRain.getContext('2d');
+    const xStars  = cStars.getContext('2d');
+    const xEmbers = cEmbers.getContext('2d');
+
+    let W, H;
+    function resize() {
+      W = window.innerWidth;
+      H = window.innerHeight;
+      [cRain, cStars, cEmbers].forEach(c => { c.width = W; c.height = H; });
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    // ─── RAIN ───
+    class Drop {
+      constructor() { this.reset(true); }
+      reset(initial = false) {
+        this.x = Math.random() * W * 1.3 - W * 0.15;
+        this.y = initial ? Math.random() * H : -Math.random() * 100;
+        this.len = Math.random() * 14 + 8;
+        this.vy = Math.random() * 6 + 7;
+        this.vx = this.vy * 0.35;
+        this.alpha = Math.random() * 0.35 + 0.15;
+        this.w = Math.random() * 0.8 + 0.3;
+      }
+      tick() {
+        this.x += this.vx;
+        this.y += this.vy;
+        if (this.y > H + 20) {
+          if (raining) this.reset(false);
+          else this.alpha = 0;
+        }
+      }
+      draw() {
+        if (this.alpha <= 0) return;
+        xRain.strokeStyle = `rgba(180, 195, 215, ${this.alpha})`;
+        xRain.lineWidth = this.w;
+        xRain.beginPath();
+        xRain.moveTo(this.x, this.y);
+        xRain.lineTo(this.x - this.vx * 1.5, this.y - this.len);
+        xRain.stroke();
+      }
+    }
+    const drops = Array.from({ length: 180 }, () => new Drop());
+
+    function rainLoop() {
+      xRain.clearRect(0, 0, W, H);
+      drops.forEach(d => { d.tick(); d.draw(); });
+      if (drops.some(d => d.alpha > 0)) requestAnimationFrame(rainLoop);
+    }
+
+    // ─── STARS ───
+    class Star {
+      constructor() {
+        this.x = Math.random() * W;
+        this.y = Math.random() * H;
+        this.size = Math.random() * 0.9 + 0.2;
+        this.baseAlpha = Math.random() * 0.4 + 0.05;
+        this.phase = Math.random() * Math.PI * 2;
+        this.speed = Math.random() * 0.015 + 0.005;
+        this.fadeIn = 0;
+      }
+      tick() {
+        if (this.fadeIn < 1) this.fadeIn += 0.005;
+        this.phase += this.speed;
+      }
+      draw() {
+        const tw = 0.5 + Math.sin(this.phase) * 0.5;
+        xStars.globalAlpha = this.baseAlpha * tw * this.fadeIn;
+        xStars.fillStyle = '#fff5dc';
+        xStars.beginPath();
+        xStars.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        xStars.fill();
+      }
+    }
+    const stars = Array.from({ length: 120 }, () => new Star());
+
+    function starsLoop() {
+      xStars.clearRect(0, 0, W, H);
+      if (starsOn) stars.forEach(s => { s.tick(); s.draw(); });
+      requestAnimationFrame(starsLoop);
+    }
+    starsLoop();
+
+    // ─── EMBERS ───
+    class Ember {
+      constructor(initial = false) { this.reset(initial); this.born = true; }
+      reset(initial = false) {
+        const cx = W / 2, cy = H / 2;
+        const angle = Math.random() * Math.PI * 2;
+        const r = Math.random() * 130;
+        this.x = cx + Math.cos(angle) * r;
+        this.y = cy + Math.sin(angle) * r;
+        this.vx = (Math.random() - 0.5) * 0.3;
+        this.vy = -(Math.random() * 0.6 + 0.1);
+        this.ax = (Math.random() - 0.5) * 0.003;
+        this.maxLife = Math.random() * 280 + 140;
+        this.life = 0;
+        this.size = Math.random() * 1.7 + 0.3;
+        this.delay = initial ? Math.floor(Math.random() * 200) : 0;
+        this.peakA = Math.random() * 0.55 + 0.15;
+        this.warm = Math.random() > 0.22;
+      }
+      tick() {
+        if (this.delay > 0) { this.delay--; return; }
+        this.life++;
+        this.vx += this.ax;
+        this.x += this.vx;
+        this.y += this.vy;
+        this.vy -= 0.0008;
+        const p = this.life / this.maxLife;
+        if      (p < 0.15) this.alpha = this.peakA * (p / 0.15);
+        else if (p > 0.65) this.alpha = this.peakA * (1 - (p - 0.65) / 0.35);
+        else               this.alpha = this.peakA;
+        if (this.life >= this.maxLife) this.reset(false);
+      }
+      draw() {
+        if (!this.alpha || this.delay > 0) return;
+        xEmbers.save();
+        xEmbers.globalAlpha = this.alpha;
+        if (this.warm) {
+          xEmbers.shadowColor = 'rgba(245, 175, 60, 0.9)';
+          xEmbers.shadowBlur = 5;
+          xEmbers.fillStyle = '#f5b84a';
+        } else {
+          xEmbers.shadowBlur = 0;
+          xEmbers.fillStyle = 'rgba(255, 248, 228, 0.6)';
+        }
+        xEmbers.beginPath();
+        xEmbers.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        xEmbers.fill();
+        xEmbers.restore();
+      }
+    }
+    const embers = [];
+
+    function embersLoop() {
+      xEmbers.clearRect(0, 0, W, H);
+      if (embersOn) embers.forEach(e => { e.tick(); e.draw(); });
+      requestAnimationFrame(embersLoop);
+    }
+    embersLoop();
+
+    // ─── PARALLAX ───
+    let mx = 0, my = 0, tx = 0, ty = 0;
+    const bloomLayer = document.getElementById('bloomLayer');
+
+    window.addEventListener('mousemove', (e) => {
+      mx = (e.clientX / W - 0.5) * 2;
+      my = (e.clientY / H - 0.5) * 2;
+    });
+
+    function parallaxLoop() {
+      tx += (mx * 18 - tx) * 0.04;
+      ty += (my * 12 - ty) * 0.04;
+      bloomLayer.style.transform = `translate(${tx}px, ${ty}px)`;
+      requestAnimationFrame(parallaxLoop);
+    }
+    parallaxLoop();
+
+    // ─── TEXT REVEAL ───
+    function setupWordReveal(el, baseDelay) {
+      const html = el.innerHTML;
+      const parts = html.split(/(<br\s*\/?>)/i);
+      let out = '';
+      let idx = 0;
+      parts.forEach(part => {
+        if (/<br/i.test(part)) {
+          out += '<br>';
+        } else {
+          part.trim().split(/\s+/).filter(Boolean).forEach(word => {
+            out += `<span class="word" style="animation-delay:${baseDelay + idx * 280}ms">${word}</span>`;
+            idx++;
+          });
+        }
+      });
+      el.innerHTML = out;
+      setTimeout(() => {
+        el.querySelectorAll('.word').forEach(w => w.classList.add('in'));
+      }, 50);
+    }
+
+    function triggerReveals() {
+      document.querySelectorAll('.line[data-delay]').forEach(el => {
+        const ms = parseInt(el.dataset.delay);
+        setTimeout(() => el.classList.add('reveal'), ms);
+      });
+
+      document.querySelectorAll('[data-words="true"]').forEach(el => {
+        const ms = parseInt(el.dataset.delay);
+        setTimeout(() => setupWordReveal(el, 0), ms);
+      });
+    }
+
+    // ─── AUDIO ───
+    const audio    = document.getElementById('bgAudio');
+    const audioBtn = document.getElementById('audioBtn');
+    let playing = false, fading = false;
+
+    function fadeIn(target = 0.85, step = 0.022, interval = 200) {
+      if (fading) return;
+      fading = true;
+      audio.volume = 0;
+      const iv = setInterval(() => {
+        audio.volume = Math.min(audio.volume + step, target);
+        if (audio.volume >= target) { clearInterval(iv); fading = false; }
+      }, interval);
+    }
+
+    function startAudio() {
+      audio.volume = 0;
+      audio.play().then(() => {
+        playing = true;
+        fadeIn();
+        audioBtn.textContent = '♪  música';
+      }).catch(() => {
+        audioBtn.textContent = '▶  música';
+      });
+    }
+
+    window.toggleAudio = function() {
+      if (!playing) {
+        audio.play().then(() => {
+          playing = true;
+          fadeIn();
+          audioBtn.textContent = '♪  música';
+        });
+      } else {
+        audio.pause();
+        playing = false;
+        audioBtn.textContent = '▶  música';
+      }
+    };
+
+    // ─── MAIN SEQUENCE ───
+    function begin() {
+      if (started) return;
+      started = true;
+
+      // Fade entry
+      document.getElementById('entry').classList.add('fade');
+
+      // Start audio
+      startAudio();
+
+      // ACT I — Rain (0-9s)
+      raining = true;
+      rainLoop();
+
+      // ACT II — Rain fades, stars appear (8-13s)
+      setTimeout(() => {
+        starsOn = true;
+        raining = false;
+      }, 8500);
+
+      // ACT III — Light appears (11s) + embers (12s)
+      setTimeout(() => {
+        embersOn = true;
+        for (let i = 0; i < 80; i++) embers.push(new Ember(true));
+      }, 12500);
+
+      // Text reveals
+      triggerReveals();
+    }
+
+    // Entry click
+    document.getElementById('entry').addEventListener('click', begin);
+    document.addEventListener('keydown', (e) => {
+      if (!started && (e.key === 'Enter' || e.key === ' ')) {
+        e.preventDefault();
+        begin();
+      }
+    });
+  })();
+  </script>
+
+</body>
+</html>
