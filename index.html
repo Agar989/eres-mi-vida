@@ -469,12 +469,83 @@
       .audio-btn { top: 1.2rem; right: 1.2rem; }
       .song-credit { bottom: 1.5rem; font-size: 0.55rem; letter-spacing: 0.25em; }
     }
+
+    /* ─────────── AUDIO STATUS BANNER ─────────── */
+    .audio-status {
+      position: fixed;
+      top: 1.8rem;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 0.9rem 1.4rem;
+      background: rgba(20, 10, 5, 0.85);
+      border: 1px solid rgba(245, 175, 60, 0.35);
+      border-radius: 2px;
+      font-family: 'Raleway', sans-serif;
+      font-weight: 200;
+      font-size: 0.72rem;
+      letter-spacing: 0.12em;
+      color: rgba(255, 220, 170, 0.9);
+      z-index: 300;
+      max-width: 90vw;
+      text-align: center;
+      backdrop-filter: blur(8px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.6s ease;
+      box-shadow: 0 0 40px rgba(245, 175, 60, 0.15);
+    }
+
+    .audio-status.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .audio-status.success {
+      border-color: rgba(120, 200, 120, 0.4);
+      color: rgba(200, 240, 200, 0.85);
+      box-shadow: 0 0 40px rgba(120, 200, 120, 0.1);
+    }
+
+    .audio-status code {
+      font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+      background: rgba(245, 175, 60, 0.12);
+      padding: 0.15rem 0.45rem;
+      border-radius: 2px;
+      font-size: 0.95em;
+      color: var(--amber);
+      letter-spacing: 0;
+    }
+
+    .audio-status .close-x {
+      display: inline-block;
+      margin-left: 0.8rem;
+      cursor: pointer;
+      opacity: 0.5;
+      transition: opacity 0.3s;
+      font-weight: 300;
+      font-size: 1.1em;
+    }
+    .audio-status .close-x:hover { opacity: 1; }
+
+    .audio-status .hint {
+      display: block;
+      margin-top: 0.4rem;
+      font-size: 0.62rem;
+      letter-spacing: 0.18em;
+      color: rgba(255, 220, 170, 0.5);
+      text-transform: uppercase;
+    }
   </style>
 </head>
 <body>
 
+  <!-- 
+    ════════════════════════════════════════════
+    MÚSICA: pon "close-to-you.mp3" en esta carpeta
+    ════════════════════════════════════════════
+  -->
   <audio id="bgAudio" loop preload="auto">
-    <source src="assets/close-to-you.mp3" type="audio/mpeg">
+    <source src="close-to-you.mp3" type="audio/mpeg">
   </audio>
 
   <!-- ENTRY SCREEN -->
@@ -533,6 +604,13 @@
 
   <div class="song-credit">♪ Close To You &nbsp;·&nbsp; The Carpenters</div>
   <button class="audio-btn" id="audioBtn" onclick="toggleAudio()">♪ &nbsp;música</button>
+
+  <!-- Audio diagnostic banner -->
+  <div class="audio-status" id="audioStatus">
+    <span id="audioStatusMsg"></span>
+    <span class="close-x" onclick="document.getElementById('audioStatus').classList.remove('show')">✕</span>
+    <span class="hint" id="audioStatusHint"></span>
+  </div>
 
   <script>
   (function() {
@@ -744,7 +822,49 @@
     // ─── AUDIO ───
     const audio    = document.getElementById('bgAudio');
     const audioBtn = document.getElementById('audioBtn');
+    const audioStatus    = document.getElementById('audioStatus');
+    const audioStatusMsg = document.getElementById('audioStatusMsg');
+    const audioStatusHint= document.getElementById('audioStatusHint');
     let playing = false, fading = false;
+    let audioLoadOk = null;  // null = unknown, true = loaded, false = failed
+
+    // Get the actual src the browser is resolving
+    const expectedSrc = audio.querySelector('source')?.src || 'close-to-you.mp3';
+    const expectedName = expectedSrc.split('/').pop();
+
+    function showStatus(msg, hint = '', success = false) {
+      audioStatusMsg.innerHTML = msg;
+      audioStatusHint.innerHTML = hint;
+      audioStatus.classList.toggle('success', success);
+      audioStatus.classList.add('show');
+      if (success) {
+        setTimeout(() => audioStatus.classList.remove('show'), 3500);
+      }
+    }
+
+    // Detect load failure
+    audio.addEventListener('error', (e) => {
+      audioLoadOk = false;
+      const err = audio.error;
+      let reason = 'archivo no encontrado';
+      if (err) {
+        if (err.code === 4) reason = 'archivo no encontrado o formato no soportado';
+        else if (err.code === 2) reason = 'error de red';
+        else if (err.code === 3) reason = 'archivo corrupto';
+      }
+      showStatus(
+        `🎵 No se pudo cargar el MP3 — <em style="color:rgba(255,180,140,0.95)">${reason}</em>`,
+        `Esperando: <code>${expectedName}</code> &nbsp;·&nbsp; URL: <code>${expectedSrc}</code>`
+      );
+    });
+
+    audio.addEventListener('canplaythrough', () => {
+      audioLoadOk = true;
+    }, { once: true });
+
+    audio.addEventListener('loadeddata', () => {
+      audioLoadOk = true;
+    }, { once: true });
 
     function fadeIn(target = 0.85, step = 0.022, interval = 200) {
       if (fading) return;
@@ -758,22 +878,51 @@
 
     function startAudio() {
       audio.volume = 0;
-      audio.play().then(() => {
-        playing = true;
-        fadeIn();
-        audioBtn.textContent = '♪  música';
-      }).catch(() => {
-        audioBtn.textContent = '▶  música';
-      });
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise.then(() => {
+          playing = true;
+          fadeIn();
+          audioBtn.textContent = '♪  música';
+
+          // Confirm it's actually playing after a moment
+          setTimeout(() => {
+            if (audioLoadOk === false) {
+              // Error already shown
+            } else if (audio.duration > 0 && !audio.paused) {
+              showStatus(
+                `♪ Música cargada correctamente`,
+                `Reproduciendo <code>${expectedName}</code>`,
+                true
+              );
+            }
+          }, 800);
+        }).catch((err) => {
+          audioBtn.textContent = '▶  música';
+          if (audioLoadOk === false) return; // error event will handle it
+          showStatus(
+            `🎵 Click en <em style="color:var(--amber)">♪ música</em> arriba a la derecha para reproducir`,
+            `(autoplay bloqueado por el navegador)`
+          );
+        });
+      }
     }
 
     window.toggleAudio = function() {
+      if (audioLoadOk === false) {
+        showStatus(
+          `🎵 No se puede reproducir — el archivo no se cargó`,
+          `Verifica que <code>${expectedName}</code> esté en la misma carpeta`
+        );
+        return;
+      }
       if (!playing) {
         audio.play().then(() => {
           playing = true;
           fadeIn();
           audioBtn.textContent = '♪  música';
-        });
+          audioStatus.classList.remove('show');
+        }).catch(() => {});
       } else {
         audio.pause();
         playing = false;
